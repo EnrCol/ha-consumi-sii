@@ -46,6 +46,23 @@ Copia la cartella `custom_components/portale_consumi` nella cartella `custom_com
 2. Accedi al portale con il tuo browser (SPID/CIE) e copia l'intero valore dell'header **`Cookie`** di una richiesta già autenticata (strumenti per sviluppatori → Rete).
 3. Incollalo nel campo richiesto e scegli l'intervallo di aggiornamento.
 
+### Come ottenere il cookie di autenticazione
+
+Esempio con Chrome/Edge (su Firefox e Safari i passaggi sono simili):
+
+1. Apri [consumienergia.it/portaleConsumi](https://www.consumienergia.it/portaleConsumi/) e accedi con SPID o CIE, fino a vedere le tue forniture.
+2. Premi **F12** (oppure tasto destro → **Ispeziona**) e apri la scheda **Rete** (*Network*).
+3. Ricarica la pagina con **F5**. Nel campo filtro scrivi `Service.json`.
+4. Clicca una richiesta dell'elenco, ad esempio `fornitureElettricheService.json`.
+5. Nel pannello a destra, scheda **Intestazioni** (*Headers*), sezione **Intestazioni richiesta** (*Request Headers*), trova la riga **`Cookie`**.
+6. Clicca col tasto destro sul valore → **Copia valore** (oppure selezionalo tutto e copialo): deve essere l'**intera** stringa, di solito lunga, con più coppie `nome=valore` separate da `;`.
+7. Incollala in Home Assistant nel campo **Header Cookie completo**.
+
+Consigli:
+- Il cookie è come una password: **non condividerlo e non pubblicarlo** (né in issue, né in log, né in screenshot).
+- La sessione scade dopo un certo tempo. Quando succede, Home Assistant mostra la notifica di reautenticazione: ripeti i passaggi sopra e incolla il nuovo cookie. Puoi anche sostituirlo prima dalla voce **Riconfigura** dell'integrazione.
+- Se la validazione fallisce con "sessione rifiutata", il cookie è incompleto o scaduto: copialo di nuovo subito dopo aver ricaricato la pagina del portale.
+
 > ⚠️ **Non inserire mai credenziali SPID o CIE.** L'integrazione usa soltanto il cookie di una sessione già autenticata, che resta salvato nella tua istanza di Home Assistant. Quando la sessione scade, Home Assistant avvia la procedura di reautenticazione e ti chiede un nuovo cookie.
 
 ### Entità
@@ -97,6 +114,23 @@ Copy the `custom_components/portale_consumi` folder into your configuration's `c
 1. **Settings → Devices & services → Add integration → Portale Consumi SII**.
 2. Log in to the portal in your browser (SPID/CIE) and copy the full value of the **`Cookie`** header from an already authenticated request (developer tools → Network).
 3. Paste it in the requested field and choose the update interval.
+
+### How to get the authentication cookie
+
+Example with Chrome/Edge (Firefox and Safari work similarly):
+
+1. Open [consumienergia.it/portaleConsumi](https://www.consumienergia.it/portaleConsumi/) and log in with SPID or CIE until you see your supplies.
+2. Press **F12** (or right-click → **Inspect**) and open the **Network** tab.
+3. Reload the page with **F5**. In the filter box type `Service.json`.
+4. Click one of the requests in the list, e.g. `fornitureElettricheService.json`.
+5. In the right-hand panel, **Headers** tab, **Request Headers** section, find the **`Cookie`** line.
+6. Right-click the value → **Copy value** (or select it all and copy it): it must be the **whole** string, usually long, made of several `name=value` pairs separated by `;`.
+7. Paste it into Home Assistant in the **Full Cookie header** field.
+
+Tips:
+- The cookie works like a password: **do not share or publish it** (not in issues, logs or screenshots).
+- The session expires after some time. When it does, Home Assistant shows a reauthentication notification: repeat the steps above and paste the new cookie. You can also replace it earlier via the integration's **Reconfigure** option.
+- If validation fails with "session rejected", the cookie is incomplete or expired: copy it again right after reloading the portal page.
 
 > ⚠️ **Never enter SPID or CIE credentials.** The integration only uses the cookie of an already authenticated session, which is stored inside your Home Assistant instance. When the session expires, Home Assistant starts the reauthentication flow and asks for a new cookie.
 
