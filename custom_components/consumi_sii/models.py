@@ -40,6 +40,14 @@ class PointSeries:
         values = [v for v in self.year_months(year).values() if v is not None]
         return round(sum(values), 3) if values else None
 
+    def latest_of_month(self, month: int) -> tuple[int, float] | None:
+        """Ultimo anno con la misura di quel mese (anno, valore)."""
+        keys = [k for k in self.months if k.endswith(f"{month:02d}")]
+        if not keys:
+            return None
+        key = max(keys)
+        return int(key[:4]), self.months[key]
+
     def latest_month(self) -> tuple[str, float] | None:
         """Ultima competenza disponibile (``YYYYMM``, valore)."""
         if not self.months:

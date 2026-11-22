@@ -66,19 +66,52 @@
   "entity": {
     "sensor": {
       "anno_corrente": {
-        "name": "Consumo anno corrente"
+        "name": "Anno corrente"
       },
       "anno_precedente": {
-        "name": "Consumo anno precedente"
+        "name": "Anno precedente"
       },
       "ultimo_mese": {
-        "name": "Ultimo mese disponibile"
-      },
-      "mese": {
-        "name": "Consumo {mese}"
+        "name": "Ultimo mese"
       },
       "ultimo_aggiornamento": {
         "name": "Ultimo aggiornamento"
+      },
+      "gennaio": {
+        "name": "Gennaio"
+      },
+      "febbraio": {
+        "name": "Febbraio"
+      },
+      "marzo": {
+        "name": "Marzo"
+      },
+      "aprile": {
+        "name": "Aprile"
+      },
+      "maggio": {
+        "name": "Maggio"
+      },
+      "giugno": {
+        "name": "Giugno"
+      },
+      "luglio": {
+        "name": "Luglio"
+      },
+      "agosto": {
+        "name": "Agosto"
+      },
+      "settembre": {
+        "name": "Settembre"
+      },
+      "ottobre": {
+        "name": "Ottobre"
+      },
+      "novembre": {
+        "name": "Novembre"
+      },
+      "dicembre": {
+        "name": "Dicembre"
       }
     }
   }

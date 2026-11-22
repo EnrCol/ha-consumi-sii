@@ -104,3 +104,11 @@ class StatisticsTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class LatestOfMonthTest(unittest.TestCase):
+    def test_ultimo_anno_disponibile_del_mese(self):
+        s = models.PointSeries("luce", "IT001", {"202412": 700.0, "202512": 728.9, "202611": 15.6})
+        self.assertEqual(s.latest_of_month(12), (2025, 728.9))
+        self.assertEqual(s.latest_of_month(11), (2026, 15.6))
+        self.assertIsNone(s.latest_of_month(3))

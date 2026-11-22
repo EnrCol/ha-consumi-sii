@@ -66,19 +66,52 @@
   "entity": {
     "sensor": {
       "anno_corrente": {
-        "name": "Current year consumption"
+        "name": "Current year"
       },
       "anno_precedente": {
-        "name": "Previous year consumption"
+        "name": "Previous year"
       },
       "ultimo_mese": {
-        "name": "Latest available month"
-      },
-      "mese": {
-        "name": "Consumption {mese}"
+        "name": "Latest month"
       },
       "ultimo_aggiornamento": {
         "name": "Last update"
+      },
+      "gennaio": {
+        "name": "January"
+      },
+      "febbraio": {
+        "name": "February"
+      },
+      "marzo": {
+        "name": "March"
+      },
+      "aprile": {
+        "name": "April"
+      },
+      "maggio": {
+        "name": "May"
+      },
+      "giugno": {
+        "name": "June"
+      },
+      "luglio": {
+        "name": "July"
+      },
+      "agosto": {
+        "name": "August"
+      },
+      "settembre": {
+        "name": "September"
+      },
+      "ottobre": {
+        "name": "October"
+      },
+      "novembre": {
+        "name": "November"
+      },
+      "dicembre": {
+        "name": "December"
       }
     }
   }

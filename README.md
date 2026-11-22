@@ -18,8 +18,9 @@ precedenti.
 
 - Trova i **POD** (luce) e i **PDR** (gas) con un contratto attivo e crea un
   **dispositivo per ciascun punto**.
-- Per ogni punto: **consumo anno corrente**, **anno precedente**, **ultimo mese
-  disponibile**, più 12 sensori mensili (disattivati di default).
+- Per ogni punto, tutti attivi: **Anno corrente**, **Anno precedente**, **Ultimo mese**,
+  un sensore per mese (**Gennaio** … **Dicembre**, con l'ultimo anno disponibile per
+  quel mese nell'attributo `anno`) e il diagnostico **Ultimo aggiornamento**.
 - Importa tutta la storia mensile come **statistiche esterne** (`consumi_sii:luce_<pod>`,
   `consumi_sii:gas_<pdr>`), selezionabili nella **dashboard Energia** come consumo
   dalla rete o come gas.

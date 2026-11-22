@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.4.0b6 — 2026-11-22
+
+- Un solo dispositivo per POD/PDR: «Ultimo aggiornamento» passa sul dispositivo del punto e il
+  dispositivo di servizio «Consumi luce e gas (SII)» viene rimosso in automatico.
+- Nomi più brevi: «Anno corrente», «Anno precedente», «Ultimo mese», «Gennaio» … «Dicembre».
+  Corretti i sensori mensili che mostravano solo il nome del dispositivo.
+- Tutti i sensori sono attivi di default; i mensili disattivati dalle versioni precedenti si
+  riattivano (quelli spenti a mano restano spenti).
+- Ogni sensore mensile mostra l'ultimo valore disponibile per quel mese (es. dicembre dell'anno
+  scorso finché non c'è quello di quest'anno), con l'anno nell'attributo `anno`.
+  Gli entity_id già esistenti non cambiano.
+
 ## 0.4.0b5 — 2026-11-22
 
 - La ricezione leggeva solo la parte del corpo già arrivata: con invii di decine di KB i dati

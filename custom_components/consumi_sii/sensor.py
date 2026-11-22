@@ -19,7 +19,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
 
-from .const import DOMAIN, NAME
+from .const import DOMAIN
 from .coordinator import ConsumiConfigEntry, ConsumiCoordinator
 from .models import ELECTRIC, PointSeries, mask_code, statistic_id
 
@@ -63,7 +63,19 @@ def _latest_attrs(series: PointSeries, _year: int) -> dict[str, Any]:
 
 
 def _month_value(month: int) -> Callable[[PointSeries, int], float | None]:
-    return lambda series, year: series.months.get(f"{year}{month:02d}")
+    def value(series: PointSeries, _year: int) -> float | None:
+        latest = series.latest_of_month(month)
+        return latest[1] if latest else None
+
+    return value
+
+
+def _month_attrs(month: int) -> Callable[[PointSeries, int], dict[str, Any]]:
+    def attrs(series: PointSeries, _year: int) -> dict[str, Any]:
+        latest = series.latest_of_month(month)
+        return {"anno": latest[0]} if latest else {}
+
+    return attrs
 
 
 DESCRIPTIONS: tuple[PointSensorDescription, ...] = (
@@ -88,11 +100,12 @@ DESCRIPTIONS: tuple[PointSensorDescription, ...] = (
     *(
         PointSensorDescription(
             key=f"mese_{month:02d}",
-            translation_key="mese",
-            translation_placeholders={"mese": _MONTHS[month - 1]},
+            # Una traduzione per mese: con un'unica chiave e un segnaposto
+            # alcuni nomi non venivano risolti e restava solo il dispositivo.
+            translation_key=_MONTHS[month - 1],
             value_fn=_month_value(month),
+            attrs_fn=_month_attrs(month),
             month=month,
-            entity_registry_enabled_default=False,
         )
         for month in range(1, 13)
     ),
@@ -105,7 +118,6 @@ async def async_setup_entry(
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     coordinator = entry.runtime_data
-    async_add_entities([LastUpdateSensor(coordinator)])
     known: set[tuple[str, str]] = set()
 
     @callback
@@ -114,14 +126,29 @@ async def async_setup_entry(
         if not new:
             return
         known.update(new)
-        async_add_entities(
-            PointSensor(coordinator, commodity, code, description)
-            for commodity, code in new
-            for description in DESCRIPTIONS
-        )
+        entities: list[SensorEntity] = []
+        for commodity, code in new:
+            entities.extend(
+                PointSensor(coordinator, commodity, code, description)
+                for description in DESCRIPTIONS
+            )
+            entities.append(LastUpdateSensor(coordinator, commodity, code))
+        async_add_entities(entities)
 
     _add_new_points()
     entry.async_on_unload(coordinator.async_add_listener(_add_new_points))
+
+
+def point_device_info(commodity: str, code: str) -> DeviceInfo:
+    electric = commodity == ELECTRIC
+    return DeviceInfo(
+        identifiers={(DOMAIN, f"{commodity}_{code}")},
+        name=f"{'Luce' if electric else 'Gas'} {mask_code(code)}",
+        manufacturer="SII - Portale Consumi",
+        model="POD energia elettrica" if electric else "PDR gas",
+        serial_number=code,
+        entry_type=DeviceEntryType.SERVICE,
+    )
 
 
 class PointSensor(CoordinatorEntity[ConsumiCoordinator], SensorEntity):
@@ -149,14 +176,7 @@ class PointSensor(CoordinatorEntity[ConsumiCoordinator], SensorEntity):
         # Nessuno state_class: lo storico a lungo termine sta nelle
         # statistiche esterne mensili, non nei sensori.
         self._attr_suggested_display_precision = 0
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, f"{commodity}_{code}")},
-            name=f"{'Luce' if electric else 'Gas'} {mask_code(code)}",
-            manufacturer="SII - Portale Consumi",
-            model="POD energia elettrica" if electric else "PDR gas",
-            serial_number=code,
-            entry_type=DeviceEntryType.SERVICE,
-        )
+        self._attr_device_info = point_device_info(commodity, code)
 
     @property
     def _series(self) -> PointSeries | None:
@@ -187,23 +207,17 @@ class PointSensor(CoordinatorEntity[ConsumiCoordinator], SensorEntity):
 
 
 class LastUpdateSensor(CoordinatorEntity[ConsumiCoordinator], SensorEntity):
-    """Data e ora dell'ultimo aggiornamento riuscito."""
+    """Data e ora dell'ultimo aggiornamento riuscito, sul dispositivo del punto."""
 
     _attr_has_entity_name = True
     _attr_translation_key = "ultimo_aggiornamento"
     _attr_device_class = SensorDeviceClass.TIMESTAMP
     _attr_entity_category = EntityCategory.DIAGNOSTIC
 
-    def __init__(self, coordinator: ConsumiCoordinator) -> None:
+    def __init__(self, coordinator: ConsumiCoordinator, commodity: str, code: str) -> None:
         super().__init__(coordinator)
-        entry = coordinator.config_entry
-        self._attr_unique_id = f"{entry.entry_id}_ultimo_aggiornamento"
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, entry.entry_id)},
-            name=NAME,
-            manufacturer="SII - Portale Consumi",
-            entry_type=DeviceEntryType.SERVICE,
-        )
+        self._attr_unique_id = f"{commodity}_{code}_ultimo_aggiornamento"
+        self._attr_device_info = point_device_info(commodity, code)
 
     @property
     def native_value(self) -> datetime | None:
