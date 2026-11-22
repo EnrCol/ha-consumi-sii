@@ -4,8 +4,9 @@
 
 - Un solo dispositivo per POD/PDR: «Ultimo aggiornamento» passa sul dispositivo del punto e il
   dispositivo di servizio «Consumi luce e gas (SII)» viene rimosso in automatico.
-- Nomi più brevi: «Anno corrente», «Anno precedente», «Ultimo mese», «Gennaio» … «Dicembre».
-  Corretti i sensori mensili che mostravano solo il nome del dispositivo.
+- Nomi più brevi: «Anno corrente», «Anno precedente», «Ultimo mese», «Gennaio» … «Dicembre»,
+  con una traduzione per mese invece di un nome con segnaposto. (Un sensore che mostra solo il nome
+  del dispositivo ha l'opzione «Usa il nome del dispositivo» attiva nelle sue impostazioni.)
 - Tutti i sensori sono attivi di default; i mensili disattivati dalle versioni precedenti si
   riattivano (quelli spenti a mano restano spenti).
 - Ogni sensore mensile mostra l'ultimo valore disponibile per quel mese (es. dicembre dell'anno
