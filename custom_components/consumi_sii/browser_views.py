@@ -21,6 +21,7 @@ from .browser import (
     PayloadError,
     PendingFlows,
     decode_payload,
+    describe_body,
     extract_series,
     hash_matches,
     origin_allowed,
@@ -111,7 +112,9 @@ class BrowserReceiveView(HomeAssistantView):
             return _json("too_large", 413)
         parsed = parse_receive_body(raw)
         if parsed is None:
-            _LOGGER.warning("Invio dal preferito scartato: corpo non valido (%s byte)", len(raw))
+            _LOGGER.warning(
+                "Invio dal preferito scartato: corpo non valido (%s byte): %s", len(raw), describe_body(raw)
+            )
             return _json("bad_request", 400)
         key, payload = parsed
 

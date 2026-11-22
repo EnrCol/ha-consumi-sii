@@ -193,6 +193,25 @@ def parse_receive_body(raw: bytes) -> tuple[str, str] | None:
     return key, payload
 
 
+def describe_body(raw: bytes) -> str:
+    """Perché un corpo è stato scartato, senza riportarne i valori."""
+    try:
+        data = json.loads(raw)
+    except (ValueError, UnicodeDecodeError) as err:
+        return f"JSON non valido ({type(err).__name__})"
+    if not isinstance(data, dict):
+        return f"non un oggetto ({type(data).__name__})"
+    parts = [f"campi={sorted(map(str, data))[:5]}"]
+    for name in ("key", "payload"):
+        value = data.get(name)
+        if not isinstance(value, str):
+            parts.append(f"{name}: {type(value).__name__}")
+            continue
+        bad = sorted({c for c in value if not (c.isascii() and (c.isalnum() or c in "-_"))})
+        parts.append(f"{name}: lunghezza {len(value)}, inizio {value[:1]!r}, caratteri estranei {bad[:10]}")
+    return "; ".join(parts)
+
+
 def _b64url_decode(text: str) -> bytes:
     try:
         return base64.urlsafe_b64decode(text + "=" * (-len(text) % 4))
@@ -394,7 +413,8 @@ def receive_page() -> str:
 (function(){{
   var msg=document.getElementById('msg');
   function show(t,c){{msg.textContent=t;msg.className=c||'';}}
-  var h=location.hash.slice(1), dot=h.indexOf('.');
+  var h=location.hash.slice(1);try{{h=decodeURIComponent(h);}}catch(e){{}}h=h.replace(/\\s+/g,'');
+  var dot=h.indexOf('.');
   history.replaceState(null,'',location.pathname);
   if(dot<1){{show('Nessun dato ricevuto. Usa il preferito sulla pagina del Portale Consumi dopo l\\'accesso.','err');return;}}
   fetch({json.dumps(RECEIVE_PATH)},{{method:'POST',credentials:'same-origin',referrerPolicy:'no-referrer',cache:'no-store',
