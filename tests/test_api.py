@@ -42,6 +42,7 @@ class CookieTests(unittest.TestCase):
 
     def test_unwrap_result_decodes_string(self):
         self.assertEqual(api.unwrap_result({"response": {"result": "{\"a\": 1}"}}), {"a": 1})
+        self.assertEqual(api.unwrap_result({"response": {"result": ""}}), {})
         with self.assertRaises(api.PortaleConsumiError):
             api.unwrap_result({"response": {}})
 

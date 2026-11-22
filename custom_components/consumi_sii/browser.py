@@ -282,9 +282,11 @@ BOOKMARKLET_TEMPLATE = (
     "var r=await fetch(B+ep+'?'+new URLSearchParams(q),{credentials:'include',headers:{Accept:'application/json'}});"
     "var j;try{j=JSON.parse(await r.text());}catch(e){throw new Error('auth');}"
     "if(r.status===503||r.status===401||r.status===403)throw new Error('auth');"
-    "if(!r.ok)throw new Error('HTTP '+r.status);"
+    "if(!r.ok)throw new Error(ep+': HTTP '+r.status);"
     "var x=j&&j.response&&j.response.result;"
-    "if(typeof x==='string'){x=JSON.parse(x);}"
+    # Il portale risponde result:"" quando non ci sono dati (es. nessuna fornitura gas).
+    "if(typeof x==='string'){if(!x.trim())return {};"
+    "try{x=JSON.parse(x);}catch(e){throw new Error(ep+': risposta non leggibile');}}"
     "if(x==null)throw new Error('auth');return x;}"
     "var Q={cf_delega:'null',denominazione_delegato:'undefined'};"
     "var d={v:1,ce:{},cg:{}};"

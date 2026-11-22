@@ -59,6 +59,10 @@ def unwrap_result(payload: Any) -> Any:
     if not isinstance(response, dict) or "result" not in response:
         raise PortaleConsumiError("La risposta non contiene response.result.")
     result = response["result"]
+    if isinstance(result, str) and not result.strip():
+        # Il portale risponde result:"" quando non ci sono dati (es. nessuna
+        # fornitura gas, punto senza misure).
+        return {}
     if isinstance(result, str):
         try:
             result = json.loads(result)

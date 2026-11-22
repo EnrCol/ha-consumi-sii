@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.0b2 — 2026-11-22
+
+- Il portale risponde `result: ""` quando non ci sono dati (es. nessuna fornitura gas): il preferito
+  si fermava con "JSON Parse error". Ora vale come "nessun dato"; gli errori indicano il servizio.
+
 ## 0.4.0b1 — 2026-11-22
 
 - **Collegamento dal browser (consigliato):** un preferito eseguito sulla pagina autenticata del

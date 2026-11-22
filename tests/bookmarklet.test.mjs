@@ -73,6 +73,19 @@ test('senza CompressionStream invia JSON non compresso, decodificabile', async (
   assert.deepEqual(Object.keys(decodeWithPython(href).series).sort(), ['gas|00881234567890', 'luce|IT001E00000001']);
 });
 
+test('result vuoto (nessuna fornitura gas, punto senza misure) non blocca l\'invio', async () => {
+  const empty = [200, JSON.stringify({ response: { result: '' } })];
+  const { alerts, href } = await run({ responses: { ...PORTAL, 'fornitureGasService.json': empty, 'consumiElettricoService.json': empty } });
+  assert.deepEqual(alerts, []);
+  assert.deepEqual(decodeWithPython(href).series, { 'luce|IT001E00000001': {} });
+});
+
+test('risposta non leggibile: il messaggio dice quale servizio', async () => {
+  const broken = [200, JSON.stringify({ response: { result: '{rotto' } })];
+  const { alerts } = await run({ responses: { ...PORTAL, 'consumiGasService.json': broken } });
+  assert.match(alerts[0], /consumiGasService\.json/);
+});
+
 test('fuori dal portale non legge nulla', async () => {
   const { alerts, requests } = await run({ host: 'example.org' });
   assert.equal(requests.length, 0);
