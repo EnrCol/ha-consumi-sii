@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.0b3 — 2026-11-22
+
+- Il preferito invia solo i campi delle misure mensili. Prima inviava le risposte intere, comprese
+  le curve orarie e quartorarie, e su utenze con tanti dati HA le scartava con "Richiesta non valida".
+- Un invio troppo grande ha ora un messaggio suo; gli invii scartati finiscono nel log di HA.
+
 ## 0.4.0b2 — 2026-11-22
 
 - Il portale risponde `result: ""` quando non ci sono dati (es. nessuna fornitura gas): il preferito

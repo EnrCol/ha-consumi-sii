@@ -99,10 +99,19 @@ class BrowserReceiveView(HomeAssistantView):
         scheme = "https" if is_cloud_connection(hass) else request.scheme
         if not origin_allowed(request.headers.get("Origin"), scheme, request.host):
             return _json("forbidden_origin", 403)
-        if request.content_type != "application/json" or (request.content_length or 0) > MAX_BODY_BYTES:
+        if request.content_type != "application/json":
+            _LOGGER.warning("Invio dal preferito scartato: Content-Type %s", request.content_type)
             return _json("bad_request", 400)
-        parsed = parse_receive_body(await request.content.read(MAX_BODY_BYTES + 1))
+        raw = await request.content.read(MAX_BODY_BYTES + 1)
+        if (request.content_length or 0) > MAX_BODY_BYTES or len(raw) > MAX_BODY_BYTES:
+            _LOGGER.warning(
+                "Invio dal preferito scartato: %s byte, limite %s",
+                request.content_length or len(raw), MAX_BODY_BYTES,
+            )
+            return _json("too_large", 413)
+        parsed = parse_receive_body(raw)
         if parsed is None:
+            _LOGGER.warning("Invio dal preferito scartato: corpo non valido (%s byte)", len(raw))
             return _json("bad_request", 400)
         key, payload = parsed
 

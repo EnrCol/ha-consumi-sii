@@ -97,3 +97,19 @@ test('sessione non autenticata (503 API_INVALID_RESPONSE): chiede di entrare e n
   assert.match(alerts[0], /SPID o CIE/);
   assert.ok(!href.includes('#'));
 });
+
+test('invia solo i campi mensili: curve orarie e campi superflui restano fuori', async () => {
+  const curve = Array.from({ length: 35040 }, (_, i) => ({ data: '20250101', ora: i, valore: 0.123456, note: 'x'.repeat(20) }));
+  const heavy = wrap({ misure_mensili: [{ competenza_consumi: '202509', delta_misure_f1: 100, delta_misure_f2: 50, data_lettura: '20251005', tipo_misura: 'Periodica', descrizione: 'y'.repeat(500) }], misure_altre_frequenze: curve });
+  const { alerts, href } = await run({ responses: { ...PORTAL, 'consumiElettricoService.json': [200, heavy] }, compression: false });
+  assert.deepEqual(alerts, []);
+  assert.ok(href.length < 5000, `URL di ${href.length} caratteri`);
+  assert.deepEqual(decodeWithPython(href).series['luce|IT001E00000001'], { '202509': 150.0 });
+});
+
+test('senza misure mensili tiene le altre frequenze, ridotte ai campi utili', async () => {
+  const other = wrap({ misure_altre_frequenze: [{ competenza_consumi: '202508', delta_misure_monoraria: '12,5', data_lettura: '20250905', extra: 'z'.repeat(300) }] });
+  const { href } = await run({ responses: { ...PORTAL, 'consumiElettricoService.json': [200, other] }, compression: false });
+  assert.deepEqual(decodeWithPython(href).series['luce|IT001E00000001'], { '202508': 12.5 });
+  assert.doesNotMatch(Buffer.from(href.split('.j')[1], 'base64url').toString(), /zzzz/);
+});

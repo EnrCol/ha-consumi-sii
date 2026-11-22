@@ -306,6 +306,15 @@ BOOKMARKLET_TEMPLATE = (
     "alert(e.message==='auth'?'Accesso al portale non rilevato: entra con SPID o CIE, apri le tue forniture e riprova.'"
     ":'Lettura dei consumi non riuscita: '+e.message);return;}"
     "box.textContent='Invio a Home Assistant…';"
+    # Solo ciò che serve alle serie mensili: le curve orarie/quartorarie
+    # (misure_altre_frequenze) possono pesare diversi MB.
+    "function R(m){var n={},k;for(k in m)if(/^(competenza_consumi|data_lettura|tipo_misura|delta_misure)/.test(k))n[k]=m[k];return n;}"
+    "function T(o){if(Array.isArray(o))return o.map(T);if(!o||typeof o!=='object')return o;"
+    "var n={},k,M=Array.isArray(o.misure_mensili);for(k in o){"
+    "if(k==='misure_altre_frequenze'&&M)continue;"
+    "n[k]=(k==='misure_mensili'||k==='misure_altre_frequenze')&&Array.isArray(o[k])"
+    "?o[k].filter(function(m){return m&&typeof m==='object';}).map(R):T(o[k]);}return n;}"
+    "d.ce=T(d.ce);d.cg=T(d.cg);"
     "var s=JSON.stringify(d),bytes,pre;"
     "if(window.CompressionStream){"
     "bytes=new Uint8Array(await new Response(new Blob([s]).stream()"
@@ -418,4 +427,5 @@ OUTCOME_MESSAGES = {
     "expired": "Collegamento scaduto: riavvia la procedura da Home Assistant.",
     "forbidden_origin": "Richiesta non proveniente da questo Home Assistant.",
     "bad_request": "Richiesta non valida.",
+    "too_large": "Dati troppo grandi per l'invio: segnala il problema su GitHub.",
 }
