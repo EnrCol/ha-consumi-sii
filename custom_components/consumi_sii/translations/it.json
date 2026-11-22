@@ -3,22 +3,35 @@
     "step": {
       "user": {
         "title": "Consumi luce e gas (SII)",
-        "description": "Incolla l'header Cookie di una sessione già autenticata su consumienergia.it (strumenti sviluppatore → Rete → una richiesta *Service.json → Intestazioni richiesta → Cookie). Non inserire mai credenziali SPID o CIE.",
-        "data": {
-          "cookie_header": "Header Cookie completo",
-          "scan_interval_hours": "Intervallo di aggiornamento (ore)"
+        "description": "Il Portale Consumi accetta solo SPID o CIE. Con il collegamento dal browser entri nel portale come sempre e un preferito invia i consumi ad Home Assistant: nessun cookie da copiare, nessuna credenziale salvata.",
+        "menu_options": {
+          "browser": "Collega dal browser (consigliato)",
+          "cookie": "Incolla il cookie (avanzato)"
         }
       },
       "reauth_confirm": {
-        "title": "Sessione scaduta",
-        "description": "Incolla l'header Cookie di una sessione già autenticata su consumienergia.it (strumenti sviluppatore → Rete → una richiesta *Service.json → Intestazioni richiesta → Cookie). Non inserire mai credenziali SPID o CIE.",
-        "data": {
-          "cookie_header": "Header Cookie completo"
+        "title": "Nuovo accesso necessario",
+        "description": "La sessione del portale è scaduta. Il collegamento dal browser non scade: è il modo consigliato.",
+        "menu_options": {
+          "browser": "Collega dal browser (consigliato)",
+          "cookie": "Incolla il cookie (avanzato)"
         }
       },
       "reconfigure": {
-        "title": "Aggiorna la sessione",
-        "description": "Incolla l'header Cookie di una sessione già autenticata su consumienergia.it (strumenti sviluppatore → Rete → una richiesta *Service.json → Intestazioni richiesta → Cookie). Non inserire mai credenziali SPID o CIE.",
+        "title": "Ricollega",
+        "description": "Crea un nuovo preferito (per esempio se è cambiato l'indirizzo di Home Assistant: la chiave precedente smette di funzionare) oppure passa al cookie.",
+        "menu_options": {
+          "browser": "Collega dal browser (consigliato)",
+          "cookie": "Incolla il cookie (avanzato)"
+        }
+      },
+      "browser": {
+        "title": "Collega dal browser",
+        "description": "Si apre una pagina con il preferito «Invia consumi a Home Assistant». Crealo, entra nel Portale Consumi con SPID o CIE e usalo quando vedi le tue forniture. Questa finestra si aggiorna da sola."
+      },
+      "cookie": {
+        "title": "Incolla il cookie",
+        "description": "Modalità avanzata. Dopo l'accesso SPID/CIE al Portale Consumi: strumenti sviluppatore (F12) → Rete → una richiesta *Service.json → Intestazioni richiesta → Cookie. Home Assistant tiene viva la sessione con una richiesta ogni 10 minuti; se scade, ti chiede un nuovo accesso. Non inserire mai credenziali SPID o CIE.",
         "data": {
           "cookie_header": "Header Cookie completo"
         }
@@ -26,23 +39,28 @@
     },
     "error": {
       "invalid_session": "Il portale ha rifiutato la sessione: cookie incompleto o scaduto.",
-      "cannot_connect": "Impossibile collegarsi o leggere una risposta valida."
+      "cannot_connect": "Impossibile collegarsi o leggere una risposta valida.",
+      "no_url": "Home Assistant non conosce il proprio indirizzo: impostalo in Impostazioni → Sistema → Rete, oppure usa il cookie."
     },
     "abort": {
       "already_configured": "Integrazione già configurata.",
-      "reauth_successful": "Sessione aggiornata.",
-      "reconfigure_successful": "Sessione aggiornata."
+      "no_points": "Il portale non mostra forniture attive per questo accesso.",
+      "reauth_successful": "Collegamento aggiornato.",
+      "reconfigure_successful": "Collegamento aggiornato."
     }
   },
   "options": {
     "step": {
       "init": {
         "title": "Aggiornamento",
-        "description": "Per cambiare la sessione usa Riconfigura dal menu dell'integrazione.",
+        "description": "Ogni quanto leggere i consumi con il cookie. La sessione viene comunque tenuta viva ogni 10 minuti.",
         "data": {
           "scan_interval_hours": "Intervallo di aggiornamento (ore)"
         }
       }
+    },
+    "abort": {
+      "browser_no_options": "Con il collegamento dal browser non ci sono opzioni: per aggiornare i dati entra nel Portale Consumi e usa il preferito."
     }
   },
   "entity": {

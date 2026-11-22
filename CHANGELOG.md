@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.4.0b1 — 2026-11-22
+
+- **Collegamento dal browser (consigliato):** un preferito eseguito sulla pagina autenticata del
+  portale legge forniture e consumi e li invia ad Home Assistant. Niente cookie da copiare, nessuna
+  credenziale salvata, nessuna sessione da rinnovare; per aggiornare basta riusarlo dal portale.
+  Chiave di invio per installazione (in HA solo l'hash), dati nel frammento dell'URL, consegna
+  same-origin, blocco dopo tentativi errati.
+- Modalità cookie diventata «avanzata»: richiesta ogni 10 minuti per tenere viva la sessione;
+  alla scadenza la riautenticazione propone anche il preferito.
+- Riconfigura: nuovo preferito (cambio chiave o indirizzo) o passaggio di modalità.
+- Test del preferito in Node con un finto portale, decodificati poi dal codice Python.
+
 ## 0.3.0b1 — 2026-11-22
 
 - Nuovo logo e icona (fulmine e fiamma), generati da `tools/draw_logo.py`.

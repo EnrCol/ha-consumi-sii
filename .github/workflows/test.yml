@@ -15,5 +15,10 @@ jobs:
         run: |
           python -m compileall -q custom_components tests
           for f in custom_components/consumi_sii/manifest.json custom_components/consumi_sii/strings.json custom_components/consumi_sii/translations/*.json hacs.json; do python -m json.tool "$f" >/dev/null; done
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
       - name: Unit tests
         run: python -m unittest discover -s tests -v
+      - name: Bookmarklet tests
+        run: node --test tests/*.test.mjs

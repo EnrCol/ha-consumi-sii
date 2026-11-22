@@ -3,11 +3,11 @@
   "name": "Consumi luce e gas (SII)",
   "codeowners": ["@EnrCol"],
   "config_flow": true,
-  "dependencies": ["recorder"],
+  "dependencies": ["http", "recorder"],
   "documentation": "https://github.com/EnrCol/ha-consumi-sii#readme",
   "integration_type": "service",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/EnrCol/ha-consumi-sii/issues",
   "requirements": [],
-  "version": "0.3.0b1"
+  "version": "0.4.0b1"
 }

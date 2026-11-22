@@ -3,22 +3,35 @@
     "step": {
       "user": {
         "title": "Consumi luce e gas (SII)",
-        "description": "Paste the Cookie header of an already authenticated consumienergia.it session (developer tools → Network → a *Service.json request → Request Headers → Cookie). Never enter SPID or CIE credentials.",
-        "data": {
-          "cookie_header": "Full Cookie header",
-          "scan_interval_hours": "Update interval (hours)"
+        "description": "Portale Consumi only accepts SPID or CIE. With the browser connection you log in to the portal as usual and a bookmark sends the consumption to Home Assistant: no cookie to copy, no stored credentials.",
+        "menu_options": {
+          "browser": "Connect from the browser (recommended)",
+          "cookie": "Paste the cookie (advanced)"
         }
       },
       "reauth_confirm": {
-        "title": "Session expired",
-        "description": "Paste the Cookie header of an already authenticated consumienergia.it session (developer tools → Network → a *Service.json request → Request Headers → Cookie). Never enter SPID or CIE credentials.",
-        "data": {
-          "cookie_header": "Full Cookie header"
+        "title": "New login required",
+        "description": "The portal session expired. The browser connection does not expire: it is the recommended way.",
+        "menu_options": {
+          "browser": "Connect from the browser (recommended)",
+          "cookie": "Paste the cookie (advanced)"
         }
       },
       "reconfigure": {
-        "title": "Update session",
-        "description": "Paste the Cookie header of an already authenticated consumienergia.it session (developer tools → Network → a *Service.json request → Request Headers → Cookie). Never enter SPID or CIE credentials.",
+        "title": "Reconnect",
+        "description": "Create a new bookmark (e.g. if the Home Assistant address changed: the previous key stops working) or switch to the cookie.",
+        "menu_options": {
+          "browser": "Connect from the browser (recommended)",
+          "cookie": "Paste the cookie (advanced)"
+        }
+      },
+      "browser": {
+        "title": "Connect from the browser",
+        "description": "A page opens with the bookmark «Invia consumi a Home Assistant». Create it, log in to Portale Consumi with SPID or CIE and use it when you see your supplies. This window updates by itself."
+      },
+      "cookie": {
+        "title": "Paste the cookie",
+        "description": "Advanced mode. After the SPID/CIE login to Portale Consumi: developer tools (F12) → Network → a *Service.json request → Request Headers → Cookie. Home Assistant keeps the session alive with a request every 10 minutes; when it expires it asks for a new login. Never enter SPID or CIE credentials.",
         "data": {
           "cookie_header": "Full Cookie header"
         }
@@ -26,23 +39,28 @@
     },
     "error": {
       "invalid_session": "The portal rejected the session: cookie incomplete or expired.",
-      "cannot_connect": "Cannot connect or read a valid response."
+      "cannot_connect": "Cannot connect or read a valid response.",
+      "no_url": "Home Assistant does not know its own address: set it in Settings → System → Network, or use the cookie."
     },
     "abort": {
       "already_configured": "Already configured.",
-      "reauth_successful": "Session updated.",
-      "reconfigure_successful": "Session updated."
+      "no_points": "The portal shows no active supplies for this login.",
+      "reauth_successful": "Connection updated.",
+      "reconfigure_successful": "Connection updated."
     }
   },
   "options": {
     "step": {
       "init": {
         "title": "Updates",
-        "description": "To change the session use Reconfigure from the integration menu.",
+        "description": "How often to read consumption with the cookie. The session is kept alive every 10 minutes anyway.",
         "data": {
           "scan_interval_hours": "Update interval (hours)"
         }
       }
+    },
+    "abort": {
+      "browser_no_options": "The browser connection has no options: to update the data log in to Portale Consumi and use the bookmark."
     }
   },
   "entity": {

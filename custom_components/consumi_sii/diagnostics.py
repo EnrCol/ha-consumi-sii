@@ -6,7 +6,7 @@ from typing import Any
 
 from homeassistant.core import HomeAssistant
 
-from .const import CONF_COOKIE_HEADER
+from .const import CONF_COOKIE_HEADER, CONF_MODE
 from .coordinator import ConsumiConfigEntry
 from .models import mask_code
 
@@ -17,10 +17,11 @@ async def async_get_config_entry_diagnostics(
     coordinator = entry.runtime_data
     data = coordinator.data
     return {
+        "modalita": entry.data.get(CONF_MODE, "cookie"),
         "options": dict(entry.options),
         "cookie": {
             "presente": bool(entry.data.get(CONF_COOKIE_HEADER)),
-            "nomi": sorted(coordinator.api._cookies),  # noqa: SLF001 - solo i nomi
+            "nomi": sorted(coordinator.api._cookies) if coordinator.api else [],  # noqa: SLF001 - solo i nomi
         },
         "ultimo_aggiornamento": data.last_update.isoformat() if data else None,
         "punti": [

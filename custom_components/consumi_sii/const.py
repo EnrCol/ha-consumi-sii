@@ -16,3 +16,12 @@ CONF_SCAN_INTERVAL_HOURS = "scan_interval_hours"
 DEFAULT_SCAN_INTERVAL_HOURS = 168  # una settimana
 MIN_SCAN_INTERVAL_HOURS = 24
 MAX_SCAN_INTERVAL_HOURS = 720
+
+CONF_MODE = "mode"
+MODE_BROWSER = "browser"
+MODE_COOKIE = "cookie"
+CONF_KEY_HASH = "key_hash"
+CONF_SERIES = "series"
+CONF_RECEIVED_AT = "received_at"
+
+KEEPALIVE_MINUTES = 10

@@ -25,8 +25,8 @@ precedenti.
   dalla rete o come gas.
 - Unisce le misure di contratti e gestori diversi sullo stesso punto, preferendo la
   lettura più recente e, a parità di data, la rettifica.
-- Salva i cookie rinnovati dal portale, così la sessione dura il più possibile.
-- Riconosce la sessione scaduta e avvia la **riautenticazione** di Home Assistant.
+- **Collegamento dal browser:** entri nel portale con SPID/CIE e un preferito invia i consumi ad Home Assistant. Nessun cookie, nessuna credenziale salvata, nulla che scada.
+- Modalità avanzata con cookie: sessione tenuta viva ogni 10 minuti, riautenticazione quando scade.
 - Diagnostica scaricabile senza cookie né codici completi.
 
 L'integrazione esegue solo richieste di lettura (GET).
@@ -37,28 +37,48 @@ Marketplace/HACS → repository personalizzato `https://github.com/EnrCol/ha-con
 categoria **Integrazione**; installa e riavvia Home Assistant. In alternativa copia
 `custom_components/consumi_sii` nella cartella `custom_components`.
 
-## Configurazione
+## Configurazione (2 minuti, una volta sola)
 
-1. Accedi a [consumienergia.it/portaleConsumi](https://www.consumienergia.it/portaleConsumi/)
-   con SPID o CIE, fino a vedere le forniture.
-2. Strumenti sviluppatore (**F12**) → **Rete** → ricarica (**F5**) → filtro `Service.json`.
-3. Apri una richiesta (es. `fornitureElettricheService.json`) → **Intestazioni richiesta**
-   → copia l'intero valore di **`Cookie`** (va bene anche la riga `Cookie: …`).
-4. **Impostazioni → Dispositivi e servizi → Aggiungi integrazione → Consumi luce e gas (SII)**
-   e incolla il valore.
+1. **Impostazioni → Dispositivi e servizi → Aggiungi integrazione → Consumi luce e gas (SII)**
+   → **Collega dal browser (consigliato)**.
+2. Si apre una pagina con il pulsante **Invia consumi a Home Assistant**: trascinalo nella
+   barra dei preferiti. Sul telefono usa **Copia codice del preferito** e segui le istruzioni.
+3. Premi **Apri il Portale Consumi** ed entra con **SPID o CIE**, come sempre.
+4. Quando vedi le tue forniture, clicca il preferito. Legge i consumi, torna su Home Assistant
+   e la configurazione si completa da sola.
 
-> ⚠️ Non inserire mai credenziali SPID o CIE. Il cookie vale come una password: resta
-> nella configurazione e nei backup di Home Assistant, non pubblicarlo.
+**Per aggiornare i dati** entra nel portale e clicca di nuovo il preferito: niente da fare in
+Home Assistant. Il portale pubblica i consumi una volta al mese, quindi basta un clic al mese.
 
-**Perché non c'è un accesso assistito come in [ha-contarina](https://github.com/EnrCol/ha-contarina)?**
-Il cookie di sessione del portale (`JSESSIONID`) è `HttpOnly`: un preferito del browser
-non può leggerlo, quindi non si può trasferire ad Home Assistant con un clic. Un'alternativa
-allo studio è un preferito che legge i dati dalla pagina autenticata e li invia ad Home
-Assistant senza trasferire alcuna credenziale.
+Niente strumenti sviluppatore, niente cookie da copiare, nessuna credenziale salvata: non c'è
+nulla che scada.
 
-Quando la sessione scade, il portale risponde `503 API_INVALID_RESPONSE` (non 401).
-L'integrazione controlla che la home pubblica del portale sia raggiungibile: se lo è,
-chiede un cookie nuovo; altrimenti lo tratta come disservizio e riprova più tardi.
+### Come funziona
+
+Il cookie di sessione del portale (`JSESSIONID`) è `HttpOnly`: un preferito non può leggerlo,
+quindi non si può trasferire come il token di [ha-contarina](https://github.com/EnrCol/ha-contarina).
+Il preferito però gira dentro la pagina del portale, dove il browser allega da sé la sessione:
+legge i quattro servizi JSON (forniture e consumi) e invia **i dati** ad Home Assistant.
+
+- I dati viaggiano nel frammento dell'URL (la parte dopo `#`, mai inviata in rete) verso una
+  pagina di Home Assistant, che li consegna con una richiesta dalla stessa origine.
+- Il preferito contiene l'indirizzo di Home Assistant e una **chiave di invio** casuale; Home
+  Assistant ne conserva solo l'hash. La chiave permette soltanto di sostituire i consumi di
+  questa integrazione: non legge nulla. Non condividere il preferito; per cambiare chiave (o se
+  cambia l'indirizzo di Home Assistant) usa **Riconfigura**.
+- Il telefono deve poter raggiungere l'indirizzo di Home Assistant usato nel preferito.
+
+### Modalità avanzata: cookie
+
+Chi vuole aggiornamenti automatici può scegliere **Incolla il cookie (avanzato)**: dopo
+l'accesso al portale, strumenti sviluppatore (**F12**) → **Rete** → una richiesta
+`*Service.json` → **Intestazioni richiesta** → valore di **`Cookie`**. Come il rinnovo del token
+in ha-contarina, Home Assistant fa una richiesta leggera **ogni 10 minuti** per tenere viva la
+sessione e salva i cookie rinnovati dal portale. Se la sessione scade, il portale risponde
+`503 API_INVALID_RESPONSE`: se la home pubblica è raggiungibile, Home Assistant chiede un nuovo
+collegamento (anche passando al preferito); altrimenti lo tratta come disservizio.
+
+> ⚠️ Non inserire mai credenziali SPID o CIE. Il cookie vale come una password.
 
 ## Dashboard Energia
 

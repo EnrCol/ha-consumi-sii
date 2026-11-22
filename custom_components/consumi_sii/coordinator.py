@@ -1,4 +1,4 @@
-"""Aggiornamento periodico: punti attivi, serie mensili e statistiche."""
+"""Dati dei consumi: inviati dal preferito oppure letti con il cookie."""
 
 from __future__ import annotations
 
@@ -9,8 +9,9 @@ from datetime import datetime, timedelta
 import aiohttp
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryAuthFailed
+from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.util import dt as dt_util
 
@@ -20,11 +21,17 @@ from .api import (
     PortaleConsumiError,
     PortaleConsumiSessionSuspect,
 )
+from .browser import series_from_store, series_to_store
 from .const import (
     CONF_COOKIE_HEADER,
+    CONF_MODE,
+    CONF_RECEIVED_AT,
     CONF_SCAN_INTERVAL_HOURS,
+    CONF_SERIES,
     DEFAULT_SCAN_INTERVAL_HOURS,
     DOMAIN,
+    KEEPALIVE_MINUTES,
+    MODE_BROWSER,
 )
 from .models import ELECTRIC, GAS, PointSeries, ResponseShapeError, active_point_codes, build_series
 from .statistics import async_import_series
@@ -37,14 +44,14 @@ class ConsumiData:
     """Risultato di un aggiornamento."""
 
     points: dict[tuple[str, str], PointSeries]
-    last_update: datetime
+    last_update: datetime | None
 
 
 type ConsumiConfigEntry = ConfigEntry["ConsumiCoordinator"]
 
 
 class ConsumiCoordinator(DataUpdateCoordinator[ConsumiData]):
-    """Recupera i punti attivi e tutte le misure, anche di gestori cessati."""
+    """Una voce di configurazione: modalità preferito o cookie."""
 
     config_entry: ConsumiConfigEntry
 
@@ -52,8 +59,9 @@ class ConsumiCoordinator(DataUpdateCoordinator[ConsumiData]):
         self,
         hass: HomeAssistant,
         entry: ConsumiConfigEntry,
-        session: aiohttp.ClientSession,
+        session: aiohttp.ClientSession | None,
     ) -> None:
+        self.browser_mode = entry.data.get(CONF_MODE) == MODE_BROWSER
         self.interval_hours = entry.options.get(
             CONF_SCAN_INTERVAL_HOURS, DEFAULT_SCAN_INTERVAL_HOURS
         )
@@ -62,57 +70,115 @@ class ConsumiCoordinator(DataUpdateCoordinator[ConsumiData]):
             _LOGGER,
             config_entry=entry,
             name=DOMAIN,
-            update_interval=timedelta(hours=self.interval_hours),
+            # Modalità preferito: nessun polling, i dati arrivano dal browser.
+            update_interval=None if self.browser_mode else timedelta(hours=self.interval_hours),
         )
         self.session = session
-        self.api = PortaleConsumiApi(session, entry.data[CONF_COOKIE_HEADER])
+        self.api = (
+            None
+            if self.browser_mode or session is None
+            else PortaleConsumiApi(session, entry.data[CONF_COOKIE_HEADER])
+        )
+        self._statistics_imported = False
 
-    async def _async_update_data(self) -> ConsumiData:
+    # ----------------------------------------------------------- preferito
+    def _stored_data(self) -> ConsumiData:
+        received = self.config_entry.data.get(CONF_RECEIVED_AT)
+        return ConsumiData(
+            points=series_from_store(self.config_entry.data.get(CONF_SERIES)),
+            last_update=dt_util.parse_datetime(received) if received else None,
+        )
+
+    async def async_apply_browser_series(
+        self, series: dict[tuple[str, str], PointSeries]
+    ) -> None:
+        """Nuovi dati dal preferito: salva, importa le statistiche, aggiorna."""
+        now = dt_util.utcnow()
+        self.hass.config_entries.async_update_entry(
+            self.config_entry,
+            data={
+                **self.config_entry.data,
+                CONF_SERIES: series_to_store(series),
+                CONF_RECEIVED_AT: now.isoformat(),
+            },
+        )
+        for item in series.values():
+            await async_import_series(self.hass, item)
+        self.async_set_updated_data(ConsumiData(points=series, last_update=now))
+
+    # ----------------------------------------------------------- cookie
+    async def _fetch_with_cookie(self) -> ConsumiData:
+        assert self.api is not None
         try:
             electric_supplies = await self.api.get_forniture_elettriche()
             gas_supplies = await self.api.get_forniture_gas()
             today = dt_util.now().date()
-            electric_codes = active_point_codes(electric_supplies, "pod", "codice_pod", today)
-            gas_codes = active_point_codes(gas_supplies, "pdr", "codice_pdr", today)
-
-            # Una chiamata per punto: restituisce anche le misure dei
-            # precedenti gestori.
             points: dict[tuple[str, str], PointSeries] = {}
-            for code in electric_codes:
+            for code in active_point_codes(electric_supplies, "pod", "codice_pod", today):
                 payload = await self.api.get_consumi_elettrici(code)
                 points[(ELECTRIC, code)] = build_series(ELECTRIC, code, payload)
-            for code in gas_codes:
+            for code in active_point_codes(gas_supplies, "pdr", "codice_pdr", today):
                 payload = await self.api.get_consumi_gas(code)
                 points[(GAS, code)] = build_series(GAS, code, payload)
         except PortaleConsumiAuthError as err:
             raise ConfigEntryAuthFailed(str(err)) from err
         except PortaleConsumiSessionSuspect as err:
             # Il portale risponde così alle sessioni scadute; se la home
-            # pubblica è su, il problema è la sessione e serve un cookie nuovo.
+            # pubblica è su, il problema è la sessione.
             if await self.api.portal_is_up():
                 raise ConfigEntryAuthFailed(
-                    "Sessione del Portale Consumi scaduta: serve un cookie nuovo."
+                    "Sessione del Portale Consumi scaduta: serve un nuovo accesso."
                 ) from err
             raise UpdateFailed(str(err)) from err
         except (PortaleConsumiError, ResponseShapeError) as err:
             raise UpdateFailed(str(err)) from err
         finally:
             self._persist_renewed_cookie()
-
-        for series in points.values():
-            await async_import_series(self.hass, series)
-
         return ConsumiData(points=points, last_update=dt_util.utcnow())
 
-    def _persist_renewed_cookie(self) -> None:
-        """Salva l'header se il portale ha rinnovato la sessione.
+    @callback
+    def async_start_keepalive(self) -> None:
+        """Come il rinnovo del token in ha-contarina: una richiesta leggera ogni
+        10 minuti tiene viva la sessione del portale fra un aggiornamento e l'altro."""
+        if self.api is None:
+            return
+        self.config_entry.async_on_unload(
+            async_track_time_interval(
+                self.hass, self._async_keepalive, timedelta(minutes=KEEPALIVE_MINUTES)
+            )
+        )
 
-        Il listener di aggiornamento in ``__init__`` ignora questo cambio,
-        quindi non provoca un ricaricamento.
-        """
+    async def _async_keepalive(self, _now: datetime) -> None:
+        assert self.api is not None
+        try:
+            await self.api.get_forniture_elettriche()
+        except (PortaleConsumiAuthError, PortaleConsumiSessionSuspect):
+            if isinstance(self.last_exception, ConfigEntryAuthFailed):
+                return
+            if await self.api.portal_is_up():
+                _LOGGER.info("Sessione del Portale Consumi scaduta: avvio la riautenticazione")
+                self.config_entry.async_start_reauth(self.hass)
+        except PortaleConsumiError as err:
+            _LOGGER.debug("Mantenimento sessione non riuscito: %s", err)
+        finally:
+            self._persist_renewed_cookie()
+
+    def _persist_renewed_cookie(self) -> None:
+        """Salva l'header se il portale ha rinnovato la sessione (senza ricaricare)."""
+        if self.api is None:
+            return
         header = self.api.cookie_header
         if header != self.config_entry.data.get(CONF_COOKIE_HEADER):
             self.hass.config_entries.async_update_entry(
                 self.config_entry,
                 data={**self.config_entry.data, CONF_COOKIE_HEADER: header},
             )
+
+    # ----------------------------------------------------------- comune
+    async def _async_update_data(self) -> ConsumiData:
+        data = self._stored_data() if self.browser_mode else await self._fetch_with_cookie()
+        if not self.browser_mode or not self._statistics_imported:
+            for series in data.points.values():
+                await async_import_series(self.hass, series)
+            self._statistics_imported = True
+        return data
