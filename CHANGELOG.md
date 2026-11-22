@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.0b5 — 2026-11-22
+
+- La ricezione leggeva solo la parte del corpo già arrivata: con invii di decine di KB i dati
+  risultavano troncati e HA rispondeva "Richiesta non valida". Ora legge il corpo fino alla fine.
+- Gli invii scartati sono descritti nel log; la pagina di ricezione decodifica il frammento.
+
 ## 0.4.0b3 — 2026-11-22
 
 - Il preferito invia solo i campi delle misure mensili. Prima inviava le risposte intere, comprese

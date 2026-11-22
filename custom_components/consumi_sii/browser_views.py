@@ -72,6 +72,23 @@ def _json(result: str, status: int) -> web.Response:
     )
 
 
+async def _read_body(request: web.Request, limit: int) -> bytes:
+    """Legge il corpo fino alla fine (o a ``limit``).
+
+    ``StreamReader.read(n)`` restituisce solo ciò che è già arrivato: con un
+    invio di decine di KB il corpo risultava troncato.
+    """
+    chunks: list[bytes] = []
+    size = 0
+    while size < limit:
+        chunk = await request.content.read(limit - size)
+        if not chunk:
+            break
+        chunks.append(chunk)
+        size += len(chunk)
+    return b"".join(chunks)
+
+
 class BrowserStartView(HomeAssistantView):
     """Aperta dal frontend nell'external step; autorizzata dalla chiave del flow."""
 
@@ -103,7 +120,7 @@ class BrowserReceiveView(HomeAssistantView):
         if request.content_type != "application/json":
             _LOGGER.warning("Invio dal preferito scartato: Content-Type %s", request.content_type)
             return _json("bad_request", 400)
-        raw = await request.content.read(MAX_BODY_BYTES + 1)
+        raw = await _read_body(request, MAX_BODY_BYTES + 1)
         if (request.content_length or 0) > MAX_BODY_BYTES or len(raw) > MAX_BODY_BYTES:
             _LOGGER.warning(
                 "Invio dal preferito scartato: %s byte, limite %s",
