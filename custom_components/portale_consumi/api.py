@@ -1,0 +1,141 @@
+"""Client HTTP per i servizi osservati del Portale Consumi."""
+
+from __future__ import annotations
+
+import json
+import logging
+import ssl
+from pathlib import Path
+from typing import Any
+
+import aiohttp
+
+from .const import (
+    API_CONSUMI_ELETTRICI,
+    API_CONSUMI_GAS,
+    API_FORNITURE_ELETTRICHE,
+    API_FORNITURE_GAS,
+    BASE_URL,
+)
+
+_LOGGER = logging.getLogger(__name__)
+
+
+class PortaleConsumiError(Exception):
+    """Errore generico del client Portale Consumi."""
+
+
+class PortaleConsumiAuthError(PortaleConsumiError):
+    """La sessione non è accettata dal portale."""
+
+
+def unwrap_result(payload: Any) -> Any:
+    """Estrae response.result, decodificandolo se è una stringa JSON."""
+    if not isinstance(payload, dict):
+        raise PortaleConsumiError("La risposta del servizio non è un oggetto JSON.")
+
+    response = payload.get("response")
+    if not isinstance(response, dict) or "result" not in response:
+        raise PortaleConsumiError("La risposta non contiene response.result.")
+
+    result = response["result"]
+    if isinstance(result, str):
+        try:
+            result = json.loads(result)
+        except json.JSONDecodeError as err:
+            raise PortaleConsumiError(
+                "response.result è una stringa ma non contiene JSON valido."
+            ) from err
+
+    if result is None:
+        raise PortaleConsumiError("response.result è vuoto.")
+
+    return result
+
+
+def _build_ssl_context() -> ssl.SSLContext:
+    """Contesto SSL standard + eventuale certificato intermedio del portale."""
+    ctx = ssl.create_default_context()
+    ca_file = Path(__file__).parent / "ca_intermedio.pem"
+    if ca_file.exists():
+        ctx.load_verify_locations(cafile=str(ca_file))
+    return ctx
+
+
+async def async_build_ssl_context(hass) -> ssl.SSLContext:
+    # Il caricamento dei certificati è bloccante: va fatto in un executor.
+    return await hass.async_add_executor_job(_build_ssl_context)
+
+
+class PortaleConsumiApi:
+    """Interroga gli endpoint confermati usando una sessione fornita dall’utente."""
+
+    def __init__(
+        self,
+        session: aiohttp.ClientSession,
+        cookie_header: str,
+    ) -> None:
+        self._session = session
+        self._cookie_header = cookie_header.strip()
+
+    async def _get(self, endpoint: str, params: dict[str, str] | None = None) -> Any:
+        url = BASE_URL + endpoint
+        headers = {
+            "Accept": "application/json, text/plain, */*",
+            "Cookie": self._cookie_header,
+        }
+
+        try:
+            async with self._session.get(
+                url,
+                params=params,
+                headers=headers,
+            ) as response:
+                if response.status in (401, 403):
+                    raise PortaleConsumiAuthError(
+                        "Il portale ha rifiutato la sessione. "
+                        "Aggiorna manualmente il valore Cookie nella configurazione."
+                    )
+                if response.status != 200:
+                    raise PortaleConsumiError(
+                        f"{endpoint} ha restituito HTTP {response.status}."
+                    )
+                content_type = response.headers.get("Content-Type", "").lower()
+                if response.history or "text/html" in content_type:
+                    raise PortaleConsumiAuthError(
+                        "Il portale ha restituito la pagina di accesso invece dei dati. "
+                        "La sessione potrebbe essere scaduta."
+                    )
+                try:
+                    payload = await response.json(content_type=None)
+                except (aiohttp.ContentTypeError, json.JSONDecodeError) as err:
+                    raise PortaleConsumiError(
+                        "La risposta del portale non è JSON valido."
+                    ) from err
+
+        except PortaleConsumiAuthError:
+            raise
+        except aiohttp.ClientError as err:
+            raise PortaleConsumiError(f"Errore di rete: {err}") from err
+
+        return unwrap_result(payload)
+
+    async def get_forniture_elettriche(self) -> Any:
+        # Parametri osservati nella richiesta del portale: sono stringhe
+        # letterali, così le invia il frontend.
+        return await self._get(
+            API_FORNITURE_ELETTRICHE,
+            {"cf_delega": "null", "denominazione_delegato": "undefined"},
+        )
+
+    async def get_forniture_gas(self) -> Any:
+        return await self._get(
+            API_FORNITURE_GAS,
+            {"cf_delega": "null", "denominazione_delegato": "undefined"},
+        )
+
+    async def get_consumi_elettrici(self, pod: str) -> Any:
+        return await self._get(API_CONSUMI_ELETTRICI, {"code": pod})
+
+    async def get_consumi_gas(self, pdr: str) -> Any:
+        return await self._get(API_CONSUMI_GAS, {"code": pdr})

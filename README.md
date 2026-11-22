@@ -1,0 +1,123 @@
+<p align="center">
+  <img src="images/logo.png" alt="Portale Consumi SII" width="160">
+</p>
+
+<h1 align="center">Portale Consumi SII</h1>
+
+<p align="center">
+  🇮🇹 <a href="#-italiano">Italiano</a> · 🇬🇧 <a href="#-english">English</a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/hacs/integration"><img src="https://img.shields.io/badge/HACS-Custom-orange.svg" alt="HACS Custom"></a>
+  <img src="https://img.shields.io/badge/Home%20Assistant-custom%20integration-blue.svg" alt="Home Assistant">
+  <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="MIT">
+</p>
+
+---
+
+## 🇮🇹 Italiano
+
+Integrazione personalizzata per **Home Assistant** che legge i consumi di **luce e gas** dal [Portale Consumi](https://www.consumienergia.it/portaleConsumi/) del SII (Sistema Informativo Integrato), anche per i periodi di precedenti fornitori.
+
+### Funzionalità
+
+- Rileva automaticamente i **POD** (luce) e i **PDR** (gas) con un contratto attivo.
+- Sensori di **consumo per anno solare** (totale) e **per ciascun mese** (gennaio–dicembre), per luce (kWh) e gas (m³).
+- Unisce le misure di contratti e gestori diversi sullo stesso punto, preferendo la lettura più recente (e una rettifica a parità di data).
+- Sensori di servizio: forniture elettriche/gas attive e ultimo aggiornamento.
+- Intervallo di aggiornamento configurabile (da 24 a 720 ore, predefinito una settimana).
+- Gestione della scadenza sessione con **reautenticazione** e **riconfigurazione** dal menu dell'integrazione.
+- Interfaccia in italiano e inglese.
+
+### Installazione con HACS
+
+1. HACS → menu ⋮ → **Repository personalizzati**.
+2. Aggiungi `https://github.com/Manu-Nat/portale-consumi-ha` con categoria **Integrazione**.
+3. Cerca **Portale Consumi SII**, scarica e **riavvia Home Assistant**.
+
+### Installazione manuale
+
+Copia la cartella `custom_components/portale_consumi` nella cartella `custom_components` della tua configurazione e riavvia Home Assistant.
+
+### Configurazione
+
+1. **Impostazioni → Dispositivi e servizi → Aggiungi integrazione → Portale Consumi SII**.
+2. Accedi al portale con il tuo browser (SPID/CIE) e copia l'intero valore dell'header **`Cookie`** di una richiesta già autenticata (strumenti per sviluppatori → Rete).
+3. Incollalo nel campo richiesto e scegli l'intervallo di aggiornamento.
+
+> ⚠️ **Non inserire mai credenziali SPID o CIE.** L'integrazione usa soltanto il cookie di una sessione già autenticata, che resta salvato nella tua istanza di Home Assistant. Quando la sessione scade, Home Assistant avvia la procedura di reautenticazione e ti chiede un nuovo cookie.
+
+### Entità
+
+| Entità | Descrizione |
+| --- | --- |
+| `PortaleConsumi - Consumo elettrico anno solare` | Totale kWh dell'anno corrente (attributo `consumi_mensili`) |
+| `PortaleConsumi - Consumo elettrico <mese>` | kWh del singolo mese |
+| `PortaleConsumi - Consumo gas anno solare` | Totale m³ dell'anno corrente |
+| `PortaleConsumi - Consumo gas <mese>` | m³ del singolo mese |
+| `PortaleConsumi - Forniture elettriche attive` | Numero di POD con contratto attivo |
+| `PortaleConsumi - Forniture gas attive` | Numero di PDR con contratto attivo |
+| `PortaleConsumi - Ultimo aggiornamento` | Data e ora dell'ultimo aggiornamento riuscito |
+
+### Note
+
+- I dati sono quelli pubblicati dal portale e possono avere ritardi di settimane/mesi: i mesi senza misura risultano non disponibili (`mesi_mancanti`).
+- Il gas è espresso nell'unità del portale (Smc), mostrata come m³.
+- Progetto non ufficiale e non affiliato al SII né ai gestori. Usalo a tuo rischio.
+
+---
+
+## 🇬🇧 English
+
+Custom integration for **Home Assistant** that reads your **electricity and gas** consumption from the SII (Italian Integrated Information System) [Portale Consumi](https://www.consumienergia.it/portaleConsumi/), including periods served by previous suppliers.
+
+### Features
+
+- Automatically detects the **POD** (electricity) and **PDR** (gas) points with an active contract.
+- **Calendar-year** (total) and **per-month** (January–December) consumption sensors for electricity (kWh) and gas (m³).
+- Merges readings from different contracts/suppliers on the same point, preferring the most recent reading (and a correction when dates are equal).
+- Service sensors: active electricity/gas supplies and last update.
+- Configurable update interval (24 to 720 hours, default one week).
+- Session expiry handled through **reauthentication** and **reconfiguration** from the integration menu.
+- Italian and English UI.
+
+### Installation with HACS
+
+1. HACS → ⋮ menu → **Custom repositories**.
+2. Add `https://github.com/Manu-Nat/portale-consumi-ha` with category **Integration**.
+3. Search for **Portale Consumi SII**, download it and **restart Home Assistant**.
+
+### Manual installation
+
+Copy the `custom_components/portale_consumi` folder into your configuration's `custom_components` folder and restart Home Assistant.
+
+### Setup
+
+1. **Settings → Devices & services → Add integration → Portale Consumi SII**.
+2. Log in to the portal in your browser (SPID/CIE) and copy the full value of the **`Cookie`** header from an already authenticated request (developer tools → Network).
+3. Paste it in the requested field and choose the update interval.
+
+> ⚠️ **Never enter SPID or CIE credentials.** The integration only uses the cookie of an already authenticated session, which is stored inside your Home Assistant instance. When the session expires, Home Assistant starts the reauthentication flow and asks for a new cookie.
+
+### Entities
+
+| Entity | Description |
+| --- | --- |
+| `PortaleConsumi - Consumo elettrico anno solare` | Current-year total in kWh (`consumi_mensili` attribute) |
+| `PortaleConsumi - Consumo elettrico <month>` | kWh for a single month |
+| `PortaleConsumi - Consumo gas anno solare` | Current-year total in m³ |
+| `PortaleConsumi - Consumo gas <month>` | m³ for a single month |
+| `PortaleConsumi - Forniture elettriche attive` | Number of PODs with an active contract |
+| `PortaleConsumi - Forniture gas attive` | Number of PDRs with an active contract |
+| `PortaleConsumi - Ultimo aggiornamento` | Date and time of the last successful update |
+
+### Notes
+
+- Data is whatever the portal publishes and can lag by weeks/months: months without a reading are reported as unavailable (`mesi_mancanti`).
+- Gas uses the portal's unit (Smc), shown as m³.
+- Unofficial project, not affiliated with SII or any energy supplier. Use at your own risk.
+
+---
+
+<p align="center">Licenza / License: <a href="LICENSE">MIT</a></p>

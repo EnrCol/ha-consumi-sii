@@ -1,0 +1,67 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Portale Consumi SII",
+        "description": "Paste the Cookie header of an already authenticated session. Do not enter SPID or CIE credentials.",
+        "data": {
+          "cookie_header": "Full Cookie header",
+          "scan_interval_hours": "Update interval (hours)"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Session expired",
+        "description": "Paste the Cookie header of an already authenticated session. Do not enter SPID or CIE credentials.",
+        "data": {
+          "cookie_header": "Full Cookie header"
+        }
+      },
+      "reconfigure": {
+        "title": "Update the session",
+        "description": "Paste the Cookie header of an already authenticated session. Do not enter SPID or CIE credentials.",
+        "data": {
+          "cookie_header": "Full Cookie header"
+        }
+      }
+    },
+    "error": {
+      "invalid_session": "The portal rejected the session.",
+      "cannot_connect": "Unable to connect or to read a valid response."
+    },
+    "abort": {
+      "already_configured": "Integration already configured.",
+      "reauth_successful": "Session updated.",
+      "reconfigure_successful": "Session updated."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Update",
+        "description": "To change the session use Reconfigure from the integration menu.",
+        "data": {
+          "scan_interval_hours": "Update interval (hours)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "forniture_elettriche": {
+        "name": "Electricity supplies"
+      },
+      "forniture_gas": {
+        "name": "Gas supplies"
+      },
+      "misure_elettriche": {
+        "name": "Electricity readings"
+      },
+      "misure_gas": {
+        "name": "Gas readings"
+      },
+      "ultimo_aggiornamento": {
+        "name": "Last update"
+      }
+    }
+  }
+}
