@@ -130,3 +130,19 @@ class PageTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class UpdatePageTest(unittest.TestCase):
+    def test_chiave_in_chiaro(self):
+        k = browser.new_key()
+        self.assertTrue(browser.key_matches(k, k))
+        self.assertFalse(browser.key_matches(k, k[:-1] + ("A" if k[-1] != "A" else "B")))
+        self.assertFalse(browser.key_matches(None, k))
+        self.assertFalse(browser.key_matches(k, ""))
+
+    def test_pagina_aggiorna(self):
+        self.assertEqual(browser.update_page_path("abc"), browser.START_PATH + "?key=abc")
+        page = browser.start_page(True, update=True)
+        self.assertIn("Aggiorna i consumi", page)
+        self.assertIn("Se non ce l'hai già, crea", page)
+        self.assertIn("Collega i consumi", browser.start_page(True))

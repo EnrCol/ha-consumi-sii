@@ -28,6 +28,7 @@ from .browser import START_PATH, key_hash
 from .browser_views import FLOW_SERIES, async_register_views, get_pending
 from .const import (
     CONF_COOKIE_HEADER,
+    CONF_KEY,
     CONF_KEY_HASH,
     CONF_MODE,
     CONF_RECEIVED_AT,
@@ -149,6 +150,7 @@ class ConsumiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         assert self._key is not None and self._series is not None
         data = {
             CONF_MODE: MODE_BROWSER,
+            CONF_KEY: self._key,
             CONF_KEY_HASH: key_hash(self._key),
             CONF_SERIES: self._series,
             CONF_RECEIVED_AT: dt_util.utcnow().isoformat(),

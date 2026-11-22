@@ -84,6 +84,15 @@ def hash_matches(stored: str | None, key: str) -> bool:
     return bool(stored) and hmac.compare_digest(stored, key_hash(key))
 
 
+def key_matches(stored: str | None, key: str) -> bool:
+    return bool(stored) and bool(key) and hmac.compare_digest(str(stored), key)
+
+
+def update_page_path(key: str) -> str:
+    """Pagina permanente «Aggiorna consumi»: la chiave nell'URL vale quanto il preferito."""
+    return f"{START_PATH}?key={key}"
+
+
 @dataclass
 class _Pending:
     flow_id: str
@@ -358,7 +367,7 @@ _STYLE = (
 BOOKMARK_NAME = "Invia consumi a Home Assistant"
 
 
-def start_page(valid: bool) -> str:
+def start_page(valid: bool, update: bool = False) -> str:
     if not valid:
         return _page(
             "Consumi luce e gas",
@@ -366,9 +375,9 @@ def start_page(valid: bool) -> str:
             "",
         )
     body = f"""
-<h2>Collega i consumi di luce e gas</h2>
+<h2>{"Aggiorna" if update else "Collega"} i consumi di luce e gas</h2>
 <ol>
-<li>Crea il preferito <b>{BOOKMARK_NAME}</b>:
+<li>{"Se non ce l'hai già, crea" if update else "Crea"} il preferito <b>{BOOKMARK_NAME}</b>:
 <ul>
 <li><b>Computer</b>: trascina questo pulsante nella barra dei preferiti (non cliccarlo qui):
 <a class="bm" id="bm" href="#">{BOOKMARK_NAME}</a></li>

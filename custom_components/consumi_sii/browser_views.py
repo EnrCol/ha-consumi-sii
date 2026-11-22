@@ -24,13 +24,14 @@ from .browser import (
     describe_body,
     extract_series,
     hash_matches,
+    key_matches,
     origin_allowed,
     parse_receive_body,
     receive_page,
     series_to_store,
     start_page,
 )
-from .const import CONF_KEY_HASH, DOMAIN
+from .const import CONF_KEY, CONF_KEY_HASH, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -89,6 +90,18 @@ async def _read_body(request: web.Request, limit: int) -> bytes:
     return b"".join(chunks)
 
 
+def _entry_for_key(hass: HomeAssistant, key: str):
+    """Voce a cui appartiene la chiave: quella della pagina o quella del primo preferito."""
+    return next(
+        (
+            e
+            for e in hass.config_entries.async_entries(DOMAIN)
+            if key_matches(e.data.get(CONF_KEY), key) or hash_matches(e.data.get(CONF_KEY_HASH), key)
+        ),
+        None,
+    )
+
+
 class BrowserStartView(HomeAssistantView):
     """Aperta dal frontend nell'external step; autorizzata dalla chiave del flow."""
 
@@ -97,9 +110,14 @@ class BrowserStartView(HomeAssistantView):
     requires_auth = False  # come il callback OAuth2 di HA: la chiave monouso è l'autorizzazione
 
     async def get(self, request: web.Request) -> web.Response:
-        pending = get_pending(request.app[KEY_HASS])
-        valid = pending.is_valid(request.query.get("flow_id", ""), request.query.get("key", ""))
-        return _html(start_page(valid), 200 if valid else 410)
+        hass = request.app[KEY_HASS]
+        key = request.query.get("key", "")
+        if get_pending(hass).is_valid(request.query.get("flow_id", ""), key):
+            return _html(start_page(True), 200)
+        # Pagina permanente «Aggiorna consumi» di una voce già configurata.
+        if _entry_for_key(hass, key) is not None:
+            return _html(start_page(True, update=True), 200)
+        return _html(start_page(False), 410)
 
 
 class BrowserReceiveView(HomeAssistantView):
@@ -142,14 +160,7 @@ class BrowserReceiveView(HomeAssistantView):
         flow_id = pending.flow_for(key)
         entry = None
         if flow_id is None:
-            entry = next(
-                (
-                    e
-                    for e in hass.config_entries.async_entries(DOMAIN)
-                    if hash_matches(e.data.get(CONF_KEY_HASH), key)
-                ),
-                None,
-            )
+            entry = _entry_for_key(hass, key)
             if entry is None:
                 pending.record_failure()
                 return _json("locked" if pending.locked() else "bad_key", 403)

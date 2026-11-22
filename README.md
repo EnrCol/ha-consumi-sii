@@ -69,6 +69,18 @@ legge i quattro servizi JSON (forniture e consumi) e invia **i dati** ad Home As
   cambia l'indirizzo di Home Assistant) usa **Riconfigura**.
 - Il telefono deve poter raggiungere l'indirizzo di Home Assistant usato nel preferito.
 
+### Aggiornare i dati (una volta al mese)
+
+Il portale si apre solo con SPID o CIE, quindi l'aggiornamento non può essere automatico:
+- HA conserva il preferito. Nella pagina del dispositivo (per esempio «Luce …1234») il link
+  **Apri** porta alla pagina **Aggiorna i consumi**, con il pulsante per aprire il portale e
+  il preferito da trascinare se non ce l'hai più.
+- Quando gli ultimi dati hanno più di 35 giorni, in **Impostazioni → Riparazioni** compare
+  l'avviso «Consumi luce e gas da aggiornare», con il link alla stessa pagina.
+- Entra nel portale, clicca il preferito: fatto. L'avviso sparisce da solo.
+
+Il link contiene la chiave del preferito: chi lo ha può solo inviare consumi a questo HA.
+
 ### Modalità avanzata: cookie
 
 Chi vuole aggiornamenti automatici può scegliere **Incolla il cookie (avanzato)**: dopo

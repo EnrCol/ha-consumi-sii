@@ -11,6 +11,7 @@ import aiohttp
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryAuthFailed
+from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.util import dt as dt_util
@@ -32,6 +33,7 @@ from .const import (
     DOMAIN,
     KEEPALIVE_MINUTES,
     MODE_BROWSER,
+    STALE_DAYS,
 )
 from .models import ELECTRIC, GAS, PointSeries, ResponseShapeError, active_point_codes, build_series
 from .statistics import async_import_series
@@ -80,6 +82,45 @@ class ConsumiCoordinator(DataUpdateCoordinator[ConsumiData]):
             else PortaleConsumiApi(session, entry.data[CONF_COOKIE_HEADER])
         )
         self._statistics_imported = False
+        # URL assoluto della pagina «Aggiorna consumi» (impostato da __init__).
+        self.update_page_url: str | None = None
+
+    # ----------------------------------------------------------- promemoria
+    @property
+    def _stale_issue_id(self) -> str:
+        return f"dati_vecchi_{self.config_entry.entry_id}"
+
+    @callback
+    def async_check_stale(self, _now: datetime | None = None) -> None:
+        """Avviso in Riparazioni quando i dati del preferito hanno più di STALE_DAYS giorni."""
+        last = self.data.last_update if self.data else None
+        days = (dt_util.utcnow() - last).days if last else None
+        if days is None or days < STALE_DAYS:
+            ir.async_delete_issue(self.hass, DOMAIN, self._stale_issue_id)
+            return
+        ir.async_create_issue(
+            self.hass,
+            DOMAIN,
+            self._stale_issue_id,
+            is_fixable=False,
+            is_persistent=False,
+            severity=ir.IssueSeverity.WARNING,
+            translation_key="dati_vecchi",
+            translation_placeholders={"giorni": str(days)},
+            learn_more_url=self.update_page_url,
+        )
+
+    @callback
+    def async_start_stale_check(self) -> None:
+        if not self.browser_mode:
+            return
+        self.async_check_stale()
+        self.config_entry.async_on_unload(
+            async_track_time_interval(self.hass, self.async_check_stale, timedelta(hours=12))
+        )
+        self.config_entry.async_on_unload(
+            lambda: ir.async_delete_issue(self.hass, DOMAIN, self._stale_issue_id)
+        )
 
     # ----------------------------------------------------------- preferito
     def _stored_data(self) -> ConsumiData:
@@ -105,6 +146,7 @@ class ConsumiCoordinator(DataUpdateCoordinator[ConsumiData]):
         for item in series.values():
             await async_import_series(self.hass, item)
         self.async_set_updated_data(ConsumiData(points=series, last_update=now))
+        self.async_check_stale()
 
     # ----------------------------------------------------------- cookie
     async def _fetch_with_cookie(self) -> ConsumiData:

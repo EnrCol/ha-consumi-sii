@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.0b8 — 2026-11-22
+
+- Pagina permanente **Aggiorna i consumi**, aperta dal link «Apri» del dispositivo: pulsante per il
+  portale e preferito sempre disponibile, senza rifare la configurazione.
+- Avviso in **Riparazioni** quando gli ultimi dati hanno più di 35 giorni, con il link alla pagina;
+  sparisce al prossimo invio.
+- Il preferito già salvato resta valido.
+
 ## 0.4.0b7 — 2026-11-22
 
 - I sensori mensili mostrano l'anno nel nome: «Dicembre 2025», «Novembre 2026». Il nome segue i

@@ -5,10 +5,13 @@ from __future__ import annotations
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import device_registry as dr, entity_registry as er
+from homeassistant.helpers.network import NoURLAvailableError, get_url
 
 from .api import async_build_ssl_context, create_session
+from .browser import new_key, update_page_path
 from .browser_views import async_register_views
 from .const import (
+    CONF_KEY,
     CONF_MODE,
     CONF_SCAN_INTERVAL_HOURS,
     DEFAULT_SCAN_INTERVAL_HOURS,
@@ -39,6 +42,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConsumiConfigEntry) -> b
 
     entry.runtime_data = coordinator
     _async_migrate_registry(hass, entry)
+    if coordinator.browser_mode:
+        if not entry.data.get(CONF_KEY):
+            # Voci create prima della pagina «Aggiorna consumi»: nuova chiave per la
+            # pagina; il preferito già salvato resta valido tramite l'hash.
+            hass.config_entries.async_update_entry(entry, data={**entry.data, CONF_KEY: new_key()})
+        try:
+            coordinator.update_page_url = get_url(hass) + update_page_path(entry.data[CONF_KEY])
+        except NoURLAvailableError:
+            coordinator.update_page_url = None
+        coordinator.async_start_stale_check()
     coordinator.async_start_keepalive()
     entry.async_on_unload(entry.add_update_listener(_async_options_updated))
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)

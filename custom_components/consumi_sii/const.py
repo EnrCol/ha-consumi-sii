@@ -21,6 +21,9 @@ CONF_MODE = "mode"
 MODE_BROWSER = "browser"
 MODE_COOKIE = "cookie"
 CONF_KEY_HASH = "key_hash"
+# Chiave in chiaro per la pagina «Aggiorna consumi» (permette solo di inviare i consumi).
+CONF_KEY = "key"
+STALE_DAYS = 35
 CONF_SERIES = "series"
 CONF_RECEIVED_AT = "received_at"
 

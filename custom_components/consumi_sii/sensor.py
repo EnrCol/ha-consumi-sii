@@ -139,9 +139,11 @@ async def async_setup_entry(
     entry.async_on_unload(coordinator.async_add_listener(_add_new_points))
 
 
-def point_device_info(commodity: str, code: str) -> DeviceInfo:
+def point_device_info(commodity: str, code: str, page_url: str | None = None) -> DeviceInfo:
     electric = commodity == ELECTRIC
     return DeviceInfo(
+        # Link «Apri» del dispositivo: pagina «Aggiorna consumi» con il preferito.
+        configuration_url=page_url,
         identifiers={(DOMAIN, f"{commodity}_{code}")},
         name=f"{'Luce' if electric else 'Gas'} {mask_code(code)}",
         manufacturer="SII - Portale Consumi",
@@ -176,7 +178,7 @@ class PointSensor(CoordinatorEntity[ConsumiCoordinator], SensorEntity):
         # Nessuno state_class: lo storico a lungo termine sta nelle
         # statistiche esterne mensili, non nei sensori.
         self._attr_suggested_display_precision = 0
-        self._attr_device_info = point_device_info(commodity, code)
+        self._attr_device_info = point_device_info(commodity, code, coordinator.update_page_url)
 
     @property
     def _series(self) -> PointSeries | None:
@@ -236,7 +238,7 @@ class LastUpdateSensor(CoordinatorEntity[ConsumiCoordinator], SensorEntity):
     def __init__(self, coordinator: ConsumiCoordinator, commodity: str, code: str) -> None:
         super().__init__(coordinator)
         self._attr_unique_id = f"{commodity}_{code}_ultimo_aggiornamento"
-        self._attr_device_info = point_device_info(commodity, code)
+        self._attr_device_info = point_device_info(commodity, code, coordinator.update_page_url)
 
     @property
     def native_value(self) -> datetime | None:

@@ -114,5 +114,11 @@
         "name": "Dicembre {anno}"
       }
     }
+  },
+  "issues": {
+    "dati_vecchi": {
+      "title": "Consumi luce e gas da aggiornare",
+      "description": "Gli ultimi consumi sono arrivati {giorni} giorni fa. Apri «Scopri di più», entra nel Portale Consumi con SPID o CIE e usa il preferito «Invia consumi a Home Assistant». La stessa pagina si apre anche dal link del dispositivo."
+    }
   }
 }

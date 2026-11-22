@@ -114,5 +114,11 @@
         "name": "December {anno}"
       }
     }
+  },
+  "issues": {
+    "dati_vecchi": {
+      "title": "Electricity and gas consumption needs updating",
+      "description": "The latest data arrived {giorni} days ago. Open “Learn more”, sign in to the Portale Consumi with SPID or CIE and use the “Invia consumi a Home Assistant” bookmark. The same page is linked from the device."
+    }
   }
 }
