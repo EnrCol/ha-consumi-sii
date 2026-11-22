@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.0b9 — 2026-11-22
+
+- Pagina **Aggiorna i consumi** ridotta all'essenziale: pulsante per il portale e due passi; il
+  preferito da ricreare sta in un riquadro a parte. README con l'uso mensile in tre passi.
+
 ## 0.4.0b8 — 2026-11-22
 
 - Pagina permanente **Aggiorna i consumi**, aperta dal link «Apri» del dispositivo: pulsante per il

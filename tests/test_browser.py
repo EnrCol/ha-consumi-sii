@@ -144,5 +144,5 @@ class UpdatePageTest(unittest.TestCase):
         self.assertEqual(browser.update_page_path("abc"), browser.START_PATH + "?key=abc")
         page = browser.start_page(True, update=True)
         self.assertIn("Aggiorna i consumi", page)
-        self.assertIn("Se non ce l'hai già, crea", page)
+        self.assertIn("Non hai il preferito su questo dispositivo", page)
         self.assertIn("Collega i consumi", browser.start_page(True))

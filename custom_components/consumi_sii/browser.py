@@ -374,10 +374,7 @@ def start_page(valid: bool, update: bool = False) -> str:
             "<p class='err'>Collegamento scaduto o non valido. Riavvia la procedura da Home Assistant.</p>",
             "",
         )
-    body = f"""
-<h2>{"Aggiorna" if update else "Collega"} i consumi di luce e gas</h2>
-<ol>
-<li>{"Se non ce l'hai già, crea" if update else "Crea"} il preferito <b>{BOOKMARK_NAME}</b>:
+    bookmark = f"""
 <ul>
 <li><b>Computer</b>: trascina questo pulsante nella barra dei preferiti (non cliccarlo qui):
 <a class="bm" id="bm" href="#">{BOOKMARK_NAME}</a></li>
@@ -387,15 +384,34 @@ def start_page(valid: bool, update: bool = False) -> str:
 al posto dell'indirizzo e chiamalo «{BOOKMARK_NAME}». Su Chrome Android, per usarlo scrivi
 «Invia consumi» nella barra degli indirizzi mentre sei sul portale e tocca il preferito.</p>
 </details></li>
-</ul></li>
+</ul>"""
+    portal = f'<p><a class="go" href="{PORTAL_URL}" rel="noreferrer" target="_self">Apri il Portale Consumi</a></p>'
+    if update:
+        # Uso mensile: prima il portale; il preferito solo se manca su questo dispositivo.
+        body = f"""
+<h2>Aggiorna i consumi di luce e gas</h2>
+<ol>
+<li>Apri il Portale Consumi ed entra con <b>SPID o CIE</b>.</li>
+<li>Quando vedi le tue forniture, clicca il preferito <b>{BOOKMARK_NAME}</b>. Fatto.</li>
+</ol>
+{portal}
+<details><summary>Non hai il preferito su questo dispositivo?</summary>{bookmark}
+<p><small>Crealo da questa pagina aperta con l'indirizzo di Home Assistant che usi anche da fuori casa,
+così funziona ovunque. Contiene una chiave che permette solo di inviare i consumi: non condividerlo.</small></p>
+</details>
+"""
+    else:
+        body = f"""
+<h2>Collega i consumi di luce e gas</h2>
+<ol>
+<li>Crea il preferito <b>{BOOKMARK_NAME}</b>:{bookmark}</li>
 <li>Apri il Portale Consumi ed entra con <b>SPID o CIE</b>.</li>
 <li>Quando vedi le tue forniture, usa il preferito: legge i consumi e torna qui da solo.</li>
 </ol>
-<p><a class="go" href="{PORTAL_URL}" rel="noreferrer" target="_self">Apri il Portale Consumi</a></p>
-<p><small>Tieni il preferito: per aggiornare i dati basterà entrare nel portale e usarlo di nuovo,
-senza passare da Home Assistant. Il preferito contiene l'indirizzo di questo Home Assistant e una
-chiave che permette solo di inviare i consumi: non condividerlo. Se cambi l'indirizzo di Home
-Assistant o vuoi cambiare chiave, usa «Riconfigura» nell'integrazione.</small></p>
+{portal}
+<p><small>Tieni il preferito: ogni mese basterà entrare nel portale e usarlo di nuovo. Se lo perdi,
+lo ritrovi dal link «Apri» del dispositivo in Home Assistant. Contiene l'indirizzo di questo Home
+Assistant e una chiave che permette solo di inviare i consumi: non condividerlo.</small></p>
 """
     script = f"""
 (function(){{
@@ -413,7 +429,7 @@ Assistant o vuoi cambiare chiave, usa «Riconfigura» nell'integrazione.</small>
   }});
 }})();
 """
-    return _page("Collega i consumi di luce e gas", body, script)
+    return _page(f"{'Aggiorna' if update else 'Collega'} i consumi di luce e gas", body, script)
 
 
 def receive_page() -> str:
