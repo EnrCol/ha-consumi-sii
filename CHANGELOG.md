@@ -2,6 +2,8 @@
 
 ## 0.3.0b1 — 2026-11-22
 
+- Nuovo logo e icona (fulmine e fiamma), generati da `tools/draw_logo.py`.
+
 Prima versione del fork `EnrCol/ha-consumi-sii`, da `Manu-Nat/portale-consumi-ha` 0.1.2.
 
 **Incompatibile con l'originale:** nuovo dominio `consumi_sii`, nuovi `unique_id` e
