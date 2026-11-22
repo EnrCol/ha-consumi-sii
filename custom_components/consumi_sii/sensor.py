@@ -183,6 +183,25 @@ class PointSensor(CoordinatorEntity[ConsumiCoordinator], SensorEntity):
         return self.coordinator.data.points.get(self._key)
 
     @property
+    def translation_placeholders(self) -> dict[str, str]:
+        """Per i mesi, l'anno del valore mostrato («Dicembre 2025»).
+
+        HA ricalcola il nome a ogni scrittura dello stato, quindi l'anno segue i dati.
+        """
+        month = self.entity_description.month
+        if month is None:
+            return {}
+        series = self._series
+        latest = series.latest_of_month(month) if series else None
+        return {"anno": str(latest[0]) if latest else ""}
+
+    @property
+    def name(self):  # type: ignore[override]
+        name = super().name
+        # Mese mai misurato: niente anno e niente spazio finale.
+        return name.strip() if isinstance(name, str) else name
+
+    @property
     def available(self) -> bool:
         return super().available and self._series is not None
 

@@ -78,40 +78,40 @@
         "name": "Last update"
       },
       "gennaio": {
-        "name": "January"
+        "name": "January {anno}"
       },
       "febbraio": {
-        "name": "February"
+        "name": "February {anno}"
       },
       "marzo": {
-        "name": "March"
+        "name": "March {anno}"
       },
       "aprile": {
-        "name": "April"
+        "name": "April {anno}"
       },
       "maggio": {
-        "name": "May"
+        "name": "May {anno}"
       },
       "giugno": {
-        "name": "June"
+        "name": "June {anno}"
       },
       "luglio": {
-        "name": "July"
+        "name": "July {anno}"
       },
       "agosto": {
-        "name": "August"
+        "name": "August {anno}"
       },
       "settembre": {
-        "name": "September"
+        "name": "September {anno}"
       },
       "ottobre": {
-        "name": "October"
+        "name": "October {anno}"
       },
       "novembre": {
-        "name": "November"
+        "name": "November {anno}"
       },
       "dicembre": {
-        "name": "December"
+        "name": "December {anno}"
       }
     }
   }

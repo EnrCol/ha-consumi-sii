@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.0b7 — 2026-11-22
+
+- I sensori mensili mostrano l'anno nel nome: «Dicembre 2025», «Novembre 2026». Il nome segue i
+  dati e cambia da solo quando arriva il mese dell'anno nuovo.
+
 ## 0.4.0b6 — 2026-11-22
 
 - Un solo dispositivo per POD/PDR: «Ultimo aggiornamento» passa sul dispositivo del punto e il
