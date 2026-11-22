@@ -2,8 +2,8 @@
   "config": {
     "step": {
       "user": {
-        "title": "Portale Consumi SII",
-        "description": "Incolla l'header Cookie della sessione già autenticata. Non inserire credenziali SPID o CIE.",
+        "title": "Consumi luce e gas (SII)",
+        "description": "Incolla l'header Cookie di una sessione già autenticata su consumienergia.it (strumenti sviluppatore → Rete → una richiesta *Service.json → Intestazioni richiesta → Cookie). Non inserire mai credenziali SPID o CIE.",
         "data": {
           "cookie_header": "Header Cookie completo",
           "scan_interval_hours": "Intervallo di aggiornamento (ore)"
@@ -11,21 +11,21 @@
       },
       "reauth_confirm": {
         "title": "Sessione scaduta",
-        "description": "Incolla l'header Cookie di una sessione già autenticata. Non inserire credenziali SPID o CIE.",
+        "description": "Incolla l'header Cookie di una sessione già autenticata su consumienergia.it (strumenti sviluppatore → Rete → una richiesta *Service.json → Intestazioni richiesta → Cookie). Non inserire mai credenziali SPID o CIE.",
         "data": {
           "cookie_header": "Header Cookie completo"
         }
       },
       "reconfigure": {
         "title": "Aggiorna la sessione",
-        "description": "Incolla l'header Cookie di una sessione già autenticata. Non inserire credenziali SPID o CIE.",
+        "description": "Incolla l'header Cookie di una sessione già autenticata su consumienergia.it (strumenti sviluppatore → Rete → una richiesta *Service.json → Intestazioni richiesta → Cookie). Non inserire mai credenziali SPID o CIE.",
         "data": {
           "cookie_header": "Header Cookie completo"
         }
       }
     },
     "error": {
-      "invalid_session": "Il portale ha rifiutato la sessione.",
+      "invalid_session": "Il portale ha rifiutato la sessione: cookie incompleto o scaduto.",
       "cannot_connect": "Impossibile collegarsi o leggere una risposta valida."
     },
     "abort": {
@@ -47,17 +47,17 @@
   },
   "entity": {
     "sensor": {
-      "forniture_elettriche": {
-        "name": "Forniture elettriche"
+      "anno_corrente": {
+        "name": "Consumo anno corrente"
       },
-      "forniture_gas": {
-        "name": "Forniture gas"
+      "anno_precedente": {
+        "name": "Consumo anno precedente"
       },
-      "misure_elettriche": {
-        "name": "Misure elettriche"
+      "ultimo_mese": {
+        "name": "Ultimo mese disponibile"
       },
-      "misure_gas": {
-        "name": "Misure gas"
+      "mese": {
+        "name": "Consumo {mese}"
       },
       "ultimo_aggiornamento": {
         "name": "Ultimo aggiornamento"

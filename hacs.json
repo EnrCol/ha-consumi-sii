@@ -1,4 +1,6 @@
 {
-  "name": "Portale Consumi SII",
+  "name": "Consumi luce e gas (SII)",
+  "country": "IT",
+  "homeassistant": "2026.11.0",
   "render_readme": true
 }

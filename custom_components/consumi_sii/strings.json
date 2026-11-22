@@ -1,0 +1,67 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Consumi luce e gas (SII)",
+        "description": "Paste the Cookie header of an already authenticated consumienergia.it session (developer tools → Network → a *Service.json request → Request Headers → Cookie). Never enter SPID or CIE credentials.",
+        "data": {
+          "cookie_header": "Full Cookie header",
+          "scan_interval_hours": "Update interval (hours)"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Session expired",
+        "description": "Paste the Cookie header of an already authenticated consumienergia.it session (developer tools → Network → a *Service.json request → Request Headers → Cookie). Never enter SPID or CIE credentials.",
+        "data": {
+          "cookie_header": "Full Cookie header"
+        }
+      },
+      "reconfigure": {
+        "title": "Update session",
+        "description": "Paste the Cookie header of an already authenticated consumienergia.it session (developer tools → Network → a *Service.json request → Request Headers → Cookie). Never enter SPID or CIE credentials.",
+        "data": {
+          "cookie_header": "Full Cookie header"
+        }
+      }
+    },
+    "error": {
+      "invalid_session": "The portal rejected the session: cookie incomplete or expired.",
+      "cannot_connect": "Cannot connect or read a valid response."
+    },
+    "abort": {
+      "already_configured": "Already configured.",
+      "reauth_successful": "Session updated.",
+      "reconfigure_successful": "Session updated."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Updates",
+        "description": "To change the session use Reconfigure from the integration menu.",
+        "data": {
+          "scan_interval_hours": "Update interval (hours)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "anno_corrente": {
+        "name": "Current year consumption"
+      },
+      "anno_precedente": {
+        "name": "Previous year consumption"
+      },
+      "ultimo_mese": {
+        "name": "Latest available month"
+      },
+      "mese": {
+        "name": "Consumption {mese}"
+      },
+      "ultimo_aggiornamento": {
+        "name": "Last update"
+      }
+    }
+  }
+}

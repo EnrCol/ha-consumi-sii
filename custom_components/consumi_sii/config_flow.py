@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import logging
 
-import aiohttp
 import voluptuous as vol
 
 from homeassistant import config_entries
@@ -12,9 +11,11 @@ from homeassistant.core import HomeAssistant
 
 from .api import (
     PortaleConsumiApi,
-    async_build_ssl_context,
     PortaleConsumiAuthError,
+    async_build_ssl_context,
+    create_session,
     PortaleConsumiError,
+    PortaleConsumiSessionSuspect,
 )
 from .const import (
     CONF_COOKIE_HEADER,
@@ -23,6 +24,7 @@ from .const import (
     DOMAIN,
     MAX_SCAN_INTERVAL_HOURS,
     MIN_SCAN_INTERVAL_HOURS,
+    NAME,
 )
 
 
@@ -58,26 +60,23 @@ async def _validate_input(
 ) -> str | None:
     """Verifica la sessione con una richiesta al servizio forniture."""
     ssl_context = await async_build_ssl_context(hass)
-    timeout = aiohttp.ClientTimeout(total=30)
-    async with aiohttp.ClientSession(
-        timeout=timeout,
-        cookie_jar=aiohttp.DummyCookieJar(),
-        connector=aiohttp.TCPConnector(ssl=ssl_context),
-    ) as session:
-        api = PortaleConsumiApi(session, user_input[CONF_COOKIE_HEADER])
+    async with create_session(ssl_context, total_timeout=30) as session:
         try:
+            api = PortaleConsumiApi(session, user_input[CONF_COOKIE_HEADER])
             await api.get_forniture_elettriche()
-        except PortaleConsumiAuthError as err:
-            _LOGGER.error("Validazione Portale Consumi fallita: %s", err)
+        except (PortaleConsumiAuthError, PortaleConsumiSessionSuspect) as err:
+            # Appena incollato: un 503 API_INVALID_RESPONSE è quasi sempre il
+            # cookie sbagliato o scaduto.
+            _LOGGER.warning("Validazione della sessione SII fallita: %s", err)
             return "invalid_session"
         except PortaleConsumiError as err:
-            _LOGGER.error("Validazione Portale Consumi fallita: %s", err)
+            _LOGGER.warning("Validazione della sessione SII fallita: %s", err)
             return "cannot_connect"
     return None
 
 
-class PortaleConsumiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Configura Portale Consumi SII."""
+class ConsumiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+    """Configura Consumi luce e gas (SII)."""
 
     VERSION = 1
 
@@ -90,7 +89,7 @@ class PortaleConsumiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 await self.async_set_unique_id(DOMAIN)
                 self._abort_if_unique_id_configured()
                 return self.async_create_entry(
-                    title="Portale Consumi SII",
+                    title=NAME,
                     data={CONF_COOKIE_HEADER: user_input[CONF_COOKIE_HEADER]},
                     options={
                         CONF_SCAN_INTERVAL_HOURS: user_input[
@@ -157,10 +156,10 @@ class PortaleConsumiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     @staticmethod
     def async_get_options_flow(config_entry):
-        return PortaleConsumiOptionsFlow()
+        return ConsumiOptionsFlow()
 
 
-class PortaleConsumiOptionsFlow(config_entries.OptionsFlow):
+class ConsumiOptionsFlow(config_entries.OptionsFlow):
     """Permette di cambiare l'intervallo di aggiornamento."""
 
     async def async_step_init(self, user_input=None):
